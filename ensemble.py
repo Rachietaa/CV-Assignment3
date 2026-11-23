@@ -54,13 +54,16 @@ def main():
             'linear probe + flip': accuracy(flip, lp, labels),
             'linear probe + transduct': accuracy(plain, methods.transductive_refine(plain, lp), labels),
             'linear probe + flip + transduct': accuracy(flip, methods.transductive_refine(flip, lp), labels),
+            'zero-shot + transduct (balanced)': accuracy(plain, methods.transductive_refine(plain, text, balanced=True), labels),
+            'linear probe + transduct (balanced)': accuracy(plain, methods.transductive_refine(plain, lp, balanced=True), labels),
+            'linear probe + flip + transduct (balanced)': accuracy(flip, methods.transductive_refine(flip, lp, balanced=True), labels),
         }
         for k, v in variants.items():
             rows.setdefault(k, []).append(v)
 
     print(f'Ensemble of {len(keys)} models: {", ".join(keys)}  (prompts: {args.prompts})')
     for k, a in rows.items():
-        print(f'  {k:34s} {statistics.mean(a):6.2f} ± {statistics.stdev(a):.1f}  [{", ".join(f"{x:.1f}" for x in a)}]')
+        print(f'  {k:44s} {statistics.mean(a):6.2f} ± {statistics.stdev(a):.1f}  [{", ".join(f"{x:.1f}" for x in a)}]')
     Path('results').mkdir(exist_ok=True)
     name = 'all' if args.models is None else '+'.join(keys)
     out = Path('results/ensemble.json')

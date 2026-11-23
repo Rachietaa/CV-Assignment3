@@ -46,6 +46,9 @@ def main():
                 'linear probe + flip': accuracy(flip, lp, labels),
                 'linear probe + transduct': accuracy(plain, methods.transductive_refine(plain, lp), labels),
                 'linear probe + flip + transduct': accuracy(flip, methods.transductive_refine(flip, lp), labels),
+                'zero-shot + transduct (balanced)': accuracy(plain, methods.transductive_refine(plain, text, balanced=True), labels),
+                'linear probe + transduct (balanced)': accuracy(plain, methods.transductive_refine(plain, lp, balanced=True), labels),
+                'linear probe + flip + transduct (balanced)': accuracy(flip, methods.transductive_refine(flip, lp, balanced=True), labels),
             }
             for k, v in variants.items():
                 rows.setdefault(k, []).append(v)
@@ -54,7 +57,7 @@ def main():
         print(f'\n[{model_dir.name}]  prompts: {args.prompts}')
         for k, a in rows.items():
             spread = f'± {statistics.stdev(a):.1f}' if len(a) > 1 else ''
-            print(f'  {k:34s} {statistics.mean(a):6.2f} {spread:7s}  [{", ".join(f"{x:.1f}" for x in a)}]')
+            print(f'  {k:44s} {statistics.mean(a):6.2f} {spread:7s}  [{", ".join(f"{x:.1f}" for x in a)}]')
 
     Path('results').mkdir(exist_ok=True)
     Path(f'results/tta_{args.prompts}.json').write_text(json.dumps(results, indent=2))
