@@ -7,15 +7,16 @@ five frozen foundation models (CLIP, DFN, Perception Encoder, SigLIP, SigLIP 2).
 
 | | Test accuracy (400 images) |
 |---|---:|
-| **Final model (shot draw 0, fixed in advance)** | **93.75%** |
-| Same pipeline over 5 random one-shot draws | 95.0 ± 1.4% (93.3–96.2%) |
+| **Final model (shot draw 0, fixed in advance)** | **94.25%** |
+| Same pipeline over 5 random one-shot draws | 95.7 ± 1.4% (94.25–97.25%) |
 | Zero-shot, no labelled image at all (best single model) | 91.25% |
 | *Assignment 1: fine-tuned ImageNet ensemble, 1,920 labelled images* | *95.75%* |
 
 **Final model:** for each of five frozen foundation models, a linear classifier that starts from the class
 *text* embeddings and is trained on the 16 shot images (plus 32 augmented views of each), with a penalty that
 keeps it close to the text. The five models are combined in one joint embedding space, and at test time the
-class weights are adapted to the unlabelled test images (transductive refinement), with flip averaging.
+class weights are adapted to the unlabelled test images (transductive refinement with a uniform class
+prior), with flip averaging.
 
 The full experimental history is in [EXPERIMENTS.md](EXPERIMENTS.md), every design decision and its reason in
 [DECISIONS.md](DECISIONS.md), and AI tool usage in [AI_USAGE.md](AI_USAGE.md).
@@ -37,7 +38,8 @@ The full experimental history is in [EXPERIMENTS.md](EXPERIMENTS.md), every desi
 | Zero-shot + transductive refinement (0 images) | 93.75 (CLIP L/14) | 93.50 |
 | Image prototype from the single shot | 79.1 ± 1.5 (DFN-5B) | — |
 | Text-initialized linear probe (16 images) | 93.55 ± 1.4 (CLIP L/14) | 92.9 ± 0.8 |
-| **+ flip + transductive refinement** | 95.35 ± 0.5 (SigLIP 2, without flip) | **95.0 ± 1.4** |
+| + flip + transductive refinement | 95.35 ± 0.5 (SigLIP 2, without flip) | 95.0 ± 1.4 |
+| **+ class-balance prior in the refinement** | 96.05 ± 0.6 (CLIP L/14) | **95.7 ± 1.4** |
 
 ## Setup
 
@@ -79,7 +81,7 @@ python predict.py --classifier final/classifier_seed0.pt --images data/test --ou
 ```
 
 It encodes the images with the five models, adapts to them without labels, writes one prediction per image
-and prints the accuracy (93.75%). Because of the test-time adaptation, images are classified together as
+and prints the accuracy (94.25%). Because of the test-time adaptation, images are classified together as
 a set; the same command works on any folder of images, e.g. `--images data/test2`.
 
 **Rebuild the classifier from scratch:**
