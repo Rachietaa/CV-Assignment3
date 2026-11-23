@@ -35,14 +35,14 @@ def main():
     classes = class_names(args.root)
     test_paths, test_labels = test_set(args.root, classes)
     shot_files = sorted(Path('shots').glob('seed*.json'))
-    print(f'Device {device} | {len(test_paths)} test images | {len(shot_files)} shot draws')
+    print(f'Device {device} | {len(test_paths)} test images | {len(shot_files)} shot draws', flush=True)
 
     for key in keys:
         start = time.time()
         out = Path('features') / key
         out.mkdir(parents=True, exist_ok=True)
         model, preprocess, tokenizer = load(key, device)
-        print(f'\n[{key}] loaded in {time.time() - start:.0f}s')
+        print(f'\n[{key}] loaded in {time.time() - start:.0f}s', flush=True)
 
         torch.save({'feats': encode_images(model, preprocess, args.root, test_paths, device),
                     'feats_flip': encode_images(model, preprocess, args.root, test_paths, device,
@@ -62,7 +62,7 @@ def main():
         sets = prompt_sets(classes)
         torch.save({name: encode_class_prompts(model, tokenizer, [p[c] for c in classes], device)
                     for name, p in sets.items()}, out / 'text.pt')
-        print(f'[{key}] done in {time.time() - start:.0f}s -> {out}/')
+        print(f'[{key}] done in {time.time() - start:.0f}s -> {out}/', flush=True)
         del model
         if device.type == 'mps':
             torch.mps.empty_cache()
