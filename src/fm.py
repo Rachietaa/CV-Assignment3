@@ -26,7 +26,9 @@ def get_device():
 def load(key, device):
     import open_clip
     arch, tag = MODELS[key]
-    model, _, preprocess = open_clip.create_model_and_transforms(arch, pretrained=tag)
+    # OpenAI's CLIP weights were trained with QuickGELU; the plain ViT-L-14-336 config uses GELU unless forced.
+    kwargs = {'force_quick_gelu': True} if tag == 'openai' else {}
+    model, _, preprocess = open_clip.create_model_and_transforms(arch, pretrained=tag, **kwargs)
     tokenizer = open_clip.get_tokenizer(arch)
     return model.eval().to(device), preprocess, tokenizer
 
