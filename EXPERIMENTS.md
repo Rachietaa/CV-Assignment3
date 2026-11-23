@@ -13,7 +13,8 @@ model was not chosen as the best-scoring single model (D6).
 | 1 | Zero-shot, best prompts | 0 | 91.25 (CLIP L/14) | 90.00 |
 | 1+3 | Zero-shot + transductive refinement | 0 | 93.75 (CLIP L/14) | 93.50 |
 | 2 | Text-initialized linear probe | 16 | 93.55 ± 1.4 (CLIP L/14) | 92.9 ± 0.8 |
-| **2+3** | **Linear probe + flip + transductive refinement** | **16** | **95.35 ± 0.5** (SigLIP 2) | **95.0 ± 1.4** ← final |
+| 2+3 | Linear probe + flip + transductive refinement | 16 | 95.35 ± 0.5 (SigLIP 2) | 95.0 ± 1.4 |
+| **5** | **+ class-balance prior in the refinement (D8)** | **16** | **96.05 ± 0.6** (CLIP L/14) | **95.7 ± 1.4** ← final; draw 0 = 94.25 |
 | *A1* | *Fine-tuned ImageNet ConvNeXt V2 ensemble* | *1,920* | | *95.75* |
 
 ---
@@ -114,7 +115,7 @@ similarities, so the linear probes and the transductive refinement run unchanged
 | Linear probe | 92.9 ± 0.8 |
 | Linear probe + flip | 92.95 ± 0.8 |
 | Linear probe + transductive | 94.95 ± 1.5 |
-| **Linear probe + flip + transductive (final model, D6)** | **95.0 ± 1.4** |
+| Linear probe + flip + transductive (final model before D8) | 95.0 ± 1.4 |
 
 - **The ensemble does not beat the best single model** (95.0 vs 95.35). Ensembles help when models make
   different mistakes; here the mistakes are shared at the class level.
@@ -127,3 +128,29 @@ similarities, so the linear probes and the transductive refinement run unchanged
   images is inversely related to its accuracy (PE-Core most confident, 0.992, least accurate, 93.25; CLIP
   least confident, 0.984, most accurate, 95.25). So the best single model cannot be identified without
   labels, which is why the final model is the ensemble (D6).
+
+
+## Step 5 — Class-balance prior in the refinement (DECISIONS.md D8)
+
+**Idea.** The refinement in Step 3 lets a class gather as many test images as look similar to it, so a class
+whose starting weights are slightly off can absorb part of a neighbouring class. Adding a uniform class prior
+fixes the total "mass" each class may take: in every iteration the soft assignments are rebalanced with three
+Sinkhorn steps (`methods.sinkhorn_balance`) so each class receives the same share, while each image still
+sums to 1. This assumes the test classes are roughly balanced (here 25 each). The adoption rule (better mean
+over the 5 draws of the final ensemble) was written down before running it.
+
+| Linear probe + flip + transductive | CLIP L/14 | DFN-5B | PE-Core | SigLIP | SigLIP 2 | **5-model ensemble** |
+|---|---:|---:|---:|---:|---:|---:|
+| Unbalanced (Step 3/4) | 95.25 ± 1.2 | 94.7 ± 0.9 | 93.25 ± 0.8 | 94.5 ± 4.2 | 95.0 ± 1.0 | 95.0 ± 1.4 |
+| **Balanced** | **96.05 ± 0.6** | 95.65 ± 1.3 | 93.45 ± 0.6 | 95.0 ± 3.8 | 95.8 ± 0.4 | **95.7 ± 1.4** |
+
+Ensemble per draw, balanced: 94.25, 96.5, 94.25, 96.25, 97.25 (unbalanced: 93.75, 96.0, 93.25, 95.75, 96.25).
+Zero-shot + refinement (no labelled image), ensemble: 93.5 → 94.0.
+
+- **Adopted** under the pre-set rule: the ensemble mean improves by +0.7, and every model's mean improves
+  (+0.2 to +0.9). The final model (draw 0) goes from 93.75% to 94.25%.
+- The prior makes the single models more stable (CLIP ± 1.2 → ± 0.6) but **does not rescue SigLIP's bad
+  draw 0** (87.3 → 88.2): that failure comes from a wrong starting classifier for some classes, not from
+  class sizes.
+- The best single model (CLIP, 96.05 ± 0.6) is still slightly above the ensemble (95.7 ± 1.4), as in Step 4;
+  the final model remains the ensemble (D6).
