@@ -1,0 +1,18 @@
+{
+  "Bedroom": "train/Bedroom/image_0035.jpg",
+  "Coast": "train/Coast/image_0345.jpg",
+  "Flower": "train/Flower/image_0067.jpg",
+  "Forest": "train/Forest/image_0066.jpg",
+  "Highway": "train/Highway/image_0031.jpg",
+  "Industrial": "train/Industrial/image_0249.jpg",
+  "InsideCity": "train/InsideCity/image_0212.jpg",
+  "Kitchen": "train/Kitchen/image_0152.jpg",
+  "LivingRoom": "train/LivingRoom/image_0149.jpg",
+  "Mountain": "train/Mountain/image_0054.jpg",
+  "Office": "train/Office/image_0025.jpg",
+  "OpenCountry": "train/OpenCountry/image_0300.jpg",
+  "Store": "train/Store/image_0008.jpg",
+  "Street": "train/Street/image_0152.jpg",
+  "Suburb": "train/Suburb/image_0133.jpg",
+  "TallBuilding": "train/TallBuilding/image_0001.jpg"
+}
