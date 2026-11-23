@@ -38,7 +38,7 @@ def main():
     out = Path('final')
     out.mkdir(exist_ok=True)
     torch.save({'classes': classes, 'models': per_model, 'prompts': PROMPTS, 'shots': shots_file.read_text(),
-                'transductive': {'iters': 10, 'temperature': 0.01, 'anchor': 0.5}, 'flip': True},
+                'transductive': {'iters': 10, 'temperature': 0.01, 'anchor': 0.5, 'balanced': True}, 'flip': True},
                out / f'classifier_seed{args.seed}.pt')
     print(f'Saved {out}/classifier_seed{args.seed}.pt')
 
