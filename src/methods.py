@@ -40,15 +40,29 @@ def tip_adapter(feats, text, shot, views, alpha=1.0, beta=5.5):
     return 100 * feats @ text.T + alpha * cache
 
 
-def transductive_refine(feats, weights, iters=10, temperature=0.01, anchor=0.5):
+def sinkhorn_balance(probs, iters=3):
+    """Rescale soft assignments [N, C] so that every class receives the same total mass (N / C) while each
+    image still distributes a total of 1 (Sinkhorn-Knopp). Encodes a uniform class prior."""
+    n, c = probs.shape
+    p = probs
+    for _ in range(iters):
+        p = p / p.sum(dim=0, keepdim=True).clamp_min(1e-12) * (n / c)   # equal class totals
+        p = p / p.sum(dim=1, keepdim=True).clamp_min(1e-12)             # each image sums to 1
+    return p
+
+
+def transductive_refine(feats, weights, iters=10, temperature=0.01, anchor=0.5, balanced=False):
     """Test-time adaptation without labels: EM-style refinement of the class weights on the unlabelled
     test embeddings. Each iteration soft-assigns every test image to the classes (softmax of cosine
     similarity / temperature), recomputes each class centre as the probability-weighted mean of the test
     embeddings, and mixes it with the original weights (`anchor`) so classes cannot drift away from what
-    the text and the shot say. Uses no test labels; the classes' sizes are not assumed."""
+    the text and the shot say. Uses no test labels. balanced=True adds a uniform class prior: the soft
+    assignments are rebalanced (sinkhorn_balance) so no class can absorb another class's images."""
     w = weights.clone()
     for _ in range(iters):
         probs = (feats @ w.T / temperature).softmax(dim=1)                 # [N, C]
+        if balanced:
+            probs = sinkhorn_balance(probs)
         centres = F.normalize(probs.T @ feats, dim=-1)                     # [C, D]
         w = F.normalize(anchor * weights + (1 - anchor) * centres, dim=-1)
     return w
