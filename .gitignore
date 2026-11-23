@@ -1,0 +1,14 @@
+# data and environments
+data
+data/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
+
+# cached embeddings are large and fully reproducible from the code
+features/
+
+# course handout
+*.pdf
